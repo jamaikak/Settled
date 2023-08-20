@@ -1,5 +1,8 @@
 import datetime
 
+
+MAX_DAYS_OUTSIDE_UK = 180
+
 DISCLAIMER_TEXT = """
 Disclaimer: This tool provides an estimation based on the provided dates. Always consult with official sources or legal experts regarding immigration rules.
 """
@@ -60,8 +63,9 @@ def check_continuous_residence(dates, current_date):
 
     if continuous_breaks:
         return False, continuous_breaks
+
     else:
-        return True, []
+        return True, MAX_DAYS_OUTSIDE_UK - days_outside
 
 
     
@@ -94,7 +98,7 @@ def main():
     dates = validate_dates(dates)
     write_dates_to_file(filename, dates)
     current_date = datetime.date.today()
-    is_rule_maintained, breaks = check_continuous_residence(dates, current_date)
+    is_rule_maintained, days_left_outside = check_continuous_residence(dates, current_date)
     
     for i, (entry_date, exit_date) in enumerate(dates):
         inside_period = (exit_date or current_date) - entry_date
@@ -106,6 +110,7 @@ def main():
     application_date = calculate_application_date(dates)
     if is_rule_maintained:
         print("\nYou have maintained continuous residence.")
+        print(f"You can still be outside the UK for {days_left_outside} more days within the current 12-month period without breaking the continuous residence rule.")
         print(f"You can apply for settled status on or after {application_date.strftime('%d/%m/%Y')}.")
     else:
         print("\nYou have broken the continuous residence rule.")
