@@ -1,6 +1,4 @@
 import datetime
-
-
 MAX_DAYS_OUTSIDE_UK = 180
 
 DISCLAIMER_TEXT = """
@@ -50,6 +48,11 @@ def is_leap_year(year):
 def check_continuous_residence(dates, current_date):
     continuous_breaks = []
 
+    # Calculate the 12 month period from the current date
+    start_date_12_month_period = current_date - datetime.timedelta(days=365)
+    total_days_outside_last_12_months = 0
+
+
     for i, (_, exit_date) in enumerate(dates[:-1]):  # Exclude the last entry because it doesn't have an exit date
         next_entry_date = dates[i+1][0]
 
@@ -58,14 +61,24 @@ def check_continuous_residence(dates, current_date):
 
         days_outside = (next_entry_date - exit_date).days
 
+         # Check if the period overlaps with the last 12 months
+        if exit_date > start_date_12_month_period or next_entry_date > start_date_12_month_period:
+            total_days_outside_last_12_months += min(
+                days_outside,
+                (next_entry_date - start_date_12_month_period).days,
+                (current_date - exit_date).days)
+            
+            days_left_outside = MAX_DAYS_OUTSIDE_UK - total_days_outside_last_12_months
+            
+
         if days_outside > 180:
             continuous_breaks.append((exit_date, next_entry_date, days_outside))
 
+    
     if continuous_breaks:
         return False, continuous_breaks
-
     else:
-        return True, MAX_DAYS_OUTSIDE_UK - days_outside
+        return True, days_left_outside
 
 
     
